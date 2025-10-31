@@ -1,0 +1,6 @@
+Name     : wanoi doherty
+Type     : Forex Hedged USD
+Server   : MetaQuotes-Demo
+Login    : 5041920001
+Password : -aVfD4Ty
+Investor : GzUrV_4k

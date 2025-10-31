@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>XAU/USD Pro Trader</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="/style.css">
+    <script src="./auth.js"></script>
+    <script src="./trading-system.js"></script>
+</head>
+<body>
+    <!-- Auth Modal -->
+    <div id="authModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeAuthModal()">×</button>
+            <h2 id="authTitle">🔐 Login / Signup</h2>
+            <div id="authForm">
+                <input type="text" id="authUsername" placeholder="Username" />
+                <input type="password" id="authPassword" placeholder="Password" />
+                <div id="authError" class="error-msg"></div>
+                <button id="btnAuthLogin" class="btn-primary">Login</button>
+                <button id="btnAuthSignup" class="btn-secondary">Signup</button>
+            </div>
+        </div>
+    </div>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <span class="gold-icon">⚡</span>
+                <h1>XAU/USD <span class="pro">PRO</span></h1>
+            </div>
+            <div class="status-bar">
+                <div class="status-item">
+                    <span class="status-dot" id="statusDot"></span>
+                    <span id="connectionStatus">Live Simulation</span>
+                </div>
+                <div class="status-item">
+                    <button id="modeToggle" class="mode-toggle">📊 Historical Mode</button>
+                </div>
+                <div class="status-item">
+                    <span id="currentTime"></span>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <!-- Paper Trading Panel (LEFT) -->
+            <div class="paper-trading-card">
+                <div class="paper-header">
+                    <h3>💰 <span id="userIdDisplay">Guest Mode</span></h3>
+                    <div class="header-actions">
+                        <button id="btnLoginShow" class="btn-icon" title="Login">🔐</button>
+                        <button id="btnSettings" class="btn-icon" title="Settings">⚙️</button>
+                        <button id="btnResetWallet" class="btn-icon" title="Reset">🔄</button>
+                    </div>
+                </div>
+                
+                <div class="wallet-info-new">
+                    <div class="wallet-main">
+                        <div class="wallet-big">
+                            <span class="wallet-label-sm">Balance</span>
+                            <span class="wallet-amount" id="walletBalance">$10,000</span>
+                        </div>
+                        <div class="wallet-big">
+                            <span class="wallet-label-sm">Equity</span>
+                            <span class="wallet-amount" id="walletEquity">$10,000</span>
+                        </div>
+                    </div>
+                    <div class="wallet-details">
+                        <div class="wallet-detail-item">
+                            <span class="wallet-label-xs">Margin</span>
+                            <span class="wallet-value-xs" id="walletMargin">$0</span>
+                        </div>
+                        <div class="wallet-detail-item">
+                            <span class="wallet-label-xs">Free Margin</span>
+                            <span class="wallet-value-xs" id="walletFreeMargin">$10,000</span>
+                        </div>
+                        <div class="wallet-detail-item">
+                            <span class="wallet-label-xs">Leverage</span>
+                            <span class="wallet-value-xs" id="walletLeverage">1:100</span>
+                        </div>
+                    </div>
+                    <div class="wallet-pl">
+                        <span class="wallet-label-xs">Total P/L</span>
+                        <span class="wallet-pl-value" id="walletPL">$0.00</span>
+                    </div>
+                </div>
+
+
+
+                <div class="settings-panel">
+                    <div class="setting-item">
+                        <label>💰 Training Balance:</label>
+                        <select id="balanceSelect">
+                            <option value="1000">$1,000</option>
+                            <option value="5000">$5,000</option>
+                            <option value="10000" selected>$10,000</option>
+                            <option value="50000">$50,000</option>
+                            <option value="100000">$100,000</option>
+                            <option value="custom">Custom Amount</option>
+                        </select>
+                        <input type="number" id="customBalance" placeholder="Enter custom amount" style="display:none; margin-top:8px; width:100%; padding:10px; background:var(--bg-secondary); border:2px solid var(--border-color); border-radius:8px; color:var(--text-primary); font-weight:600;" />
+                    </div>
+                    <div class="setting-item">
+                        <label>⚡ Leverage:</label>
+                        <select id="leverageSelect">
+                            <option value="100" selected>1:100</option>
+                            <option value="1000">1:1000</option>
+                            <option value="3000">1:3000</option>
+                        </select>
+                    </div>
+                    <div class="setting-item">
+                        <label>📊 Lot Size:</label>
+                        <div class="lot-controls">
+                            <button id="btnLotMinus" class="btn-lot">-</button>
+                            <input type="number" id="lotSize" value="0.01" min="0.01" max="10" step="0.01" />
+                            <button id="btnLotPlus" class="btn-lot">+</button>
+                        </div>
+                        <small>Margin: <span id="requiredMargin">$0</span></small>
+                    </div>
+                    <div class="setting-item">
+                        <label>🎯 Take Profit (pips):</label>
+                        <input type="number" id="takeProfitPips" value="15" min="5" max="100" step="1" style="width: 100%; padding: 10px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-weight: 600; text-align: center;" />
+                    </div>
+                    <div class="setting-item">
+                        <label>🛡️ Stop Loss (pips):</label>
+                        <input type="number" id="stopLossPips" value="10" min="3" max="50" step="1" style="width: 100%; padding: 10px; background: var(--bg-secondary); border: 2px solid var(--border-color); border-radius: 8px; color: var(--text-primary); font-weight: 600; text-align: center;" />
+                    </div>
+                </div>
+
+                <div class="trade-buttons">
+                    <button id="btnBuy" class="btn-trade buy">📈 BUY</button>
+                    <button id="btnSell" class="btn-trade sell">📉 SELL</button>
+                </div>
+
+                <div class="positions-list" id="positionsList">
+                    <div class="no-position">Tiada position aktif</div>
+                </div>
+
+                <button id="btnCloseAll" class="btn-close-all" disabled>Close All Positions</button>
+
+                <div class="trade-history-section">
+                    <h4>Recent Trades</h4>
+                    <div class="trade-history" id="tradeHistory">
+                        <div class="no-history">Belum ada trade history</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Panel (CENTER) -->
+            <div class="chart-panel">
+                <div class="panel-header">
+                    <h2>📊 XAU/USD Live Chart</h2>
+                    <div class="chart-controls">
+                        <select id="timeframeSelect" style="display: none; padding: 8px 16px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 0.95rem;">
+                            <option value="1m">1 Minute</option>
+                            <option value="5m" selected>5 Minutes</option>
+                            <option value="15m">15 Minutes</option>
+                            <option value="30m">30 Minutes</option>
+                            <option value="1h">1 Hour</option>
+                            <option value="2h">2 Hours</option>
+                            <option value="4h">4 Hours</option>
+                            <option value="1d">1 Day</option>
+                        </select>
+                        <div class="chart-toggle">
+                            <button id="btnChartView" class="btn-chart-toggle active" data-view="tradingview">TradingView</button>
+                            <button id="btnChartView2" class="btn-chart-toggle" data-view="technical">Technical</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- TradingView Widget -->
+                <div class="tradingview-widget-container" id="tradingviewContainer">
+                    <div id="tradingview_chart"></div>
+                </div>
+                
+                <!-- Lightweight Chart (for data) -->
+                <div id="technicalChart" style="display: none;"></div>
+                
+                <div class="price-info">
+                    <div class="price-item">
+                        <span class="label">BID</span>
+                        <span class="value" id="bidPrice">-</span>
+                    </div>
+                    <div class="price-item">
+                        <span class="label">ASK</span>
+                        <span class="value" id="askPrice">-</span>
+                    </div>
+                    <div class="price-item">
+                        <span class="label">SPREAD</span>
+                        <span class="value" id="spread">-</span>
+                    </div>
+                    <div class="price-item mode-indicator" id="modeIndicator">
+                        <span class="label">MODE</span>
+                        <span class="value mode-badge">LIVE SIM</span>
+                    </div>
+                </div>
+
+                <div class="strategy-legend">
+                    <h4>📚 Strategy Guide</h4>
+                    <div class="legend-item">
+                        <strong>⚡ Scalping:</strong> Fast signals (5m). EMA20/50 + RSI + MACD. SL:10 TP:18. Frequent trades.
+                    </div>
+                    <div class="legend-item">
+                        <strong>🐢 Swing:</strong> Patient (1h). H&S patterns only. SL:30 TP:60. Quality over quantity.
+                    </div>
+                    <div class="legend-item">
+                        <strong>🎯 Hunter:</strong> Session-based (1m). London+NY only. Pivot+Candlestick. SL:10 TP:15.
+                    </div>
+                    <div class="legend-item">
+                        <strong>🎯 Sniper:</strong> Perfect setup (15m). H&S/Double Top/Bottom + Volume + RSI + S/R. SL:25 TP:50.
+                    </div>
+                    <div class="legend-item">
+                        <strong>👑 Ultimate Sniper:</strong> Deep analysis (30m). 50-candle structure + confirmed patterns. SL:30 TP:60. Rare but deadly.
+                    </div>
+                    <div class="legend-item" style="border-color: var(--accent-red);">
+                        <strong>🎲 Gambler:</strong> ⚠️ EXTREME RISK (1m). Every candle = signal. Momentum only. SL:5 TP:8. High frequency, high danger!
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Signal Panel (RIGHT) -->
+            <div class="info-panel">
+                <div class="signal-card" id="signalCard">
+                    <div class="signal-header">
+                        <h3>AI Signal</h3>
+                        <span class="signal-badge" id="signalBadge">ANALYZING</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                        <select id="tradingStyleSelect" style="flex: 1; padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;">
+                            <option value="scalping">⚡ Scalping</option>
+                            <option value="swing">🐢 Swing</option>
+                            <option value="hunter">🎯 Hunter</option>
+                            <option value="sniper">🎯 Sniper</option>
+                            <option value="ultimate">👑 Ultimate Sniper</option>
+                            <option value="gambler">🎲 Gambler</option>
+                        </select>
+                        <select id="aiModeSelect" style="flex: 1; padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 0.85rem;" title="Hybrid: Pattern + AI confirm | Full AI: Groq LLM analysis | Pattern: Technical only">
+                            <option value="hybrid" title="Pattern detection + AI confirmation for higher accuracy">Hybrid AI</option>
+                            <option value="full-ai" title="Pure AI analysis using Groq LLM (slower but intelligent)">Full AI</option>
+                            <option value="pattern" title="Technical indicators + pattern detection only (fastest)">Pattern Only</option>
+                        </select>
+                    </div>
+                    <div class="signal-body">
+                        <div class="signal-main">
+                            <div class="signal-type" id="signalType">HOLD</div>
+                            <div class="confidence">
+                                <span class="confidence-label">Confidence</span>
+                                <div class="confidence-bar">
+                                    <div class="confidence-fill" id="confidenceFill"></div>
+                                </div>
+                                <span class="confidence-value" id="confidenceValue">0%</span>
+                            </div>
+                        </div>
+                        <div class="signal-details">
+                            <div class="detail-item">
+                                <span class="detail-label">Entry</span>
+                                <span class="detail-value" id="entryPrice">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Stop Loss</span>
+                                <span class="detail-value" id="stopLoss">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Take Profit</span>
+                                <span class="detail-value" id="takeProfit">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <span class="detail-label">Risk/Reward</span>
+                                <span class="detail-value" id="riskReward">-</span>
+                            </div>
+                        </div>
+                        <div class="signal-reasoning" id="signalReasoning">
+                            Analyzing market patterns...
+                        </div>
+                    </div>
+                </div>
+
+                <div class="indicators-card">
+                    <h3>Technical Indicators</h3>
+                    <div class="indicator-list">
+                        <div class="indicator-item">
+                            <span class="indicator-name">RSI (14)</span>
+                            <span class="indicator-value" id="rsiValue">-</span>
+                            <span class="indicator-signal" id="rsiSignal">-</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="indicator-name">MACD</span>
+                            <span class="indicator-value" id="macdValue">-</span>
+                            <span class="indicator-signal" id="macdSignal">-</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="indicator-name">Bollinger</span>
+                            <span class="indicator-value" id="bbValue">-</span>
+                            <span class="indicator-signal" id="bbSignal">-</span>
+                        </div>
+                        <div class="indicator-item">
+                            <span class="indicator-name">Trend</span>
+                            <span class="indicator-value" id="trendValue">-</span>
+                            <span class="indicator-signal" id="trendSignal">-</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats-card">
+                    <h3>Today's Performance</h3>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">Signals</span>
+                            <span class="stat-value" id="totalSignals">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Win Rate</span>
+                            <span class="stat-value" id="winRate">0%</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Profit</span>
+                            <span class="stat-value profit" id="totalProfit">$0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Accuracy</span>
+                            <span class="stat-value" id="accuracy">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="news-card">
+                    <h3>📰 Market News</h3>
+                    <div class="news-list" id="newsList">
+                        <div class="news-loading">Loading news...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert-container" id="alertContainer"></div>
+        
+        <div class="disclaimer-banner">
+            <div class="disclaimer-content">
+                <span class="disclaimer-icon">⚠️</span>
+                <div class="disclaimer-text">
+                    <strong>Educational Purpose Only</strong>
+                    <p>Platform ini untuk pembelajaran sahaja. Trading melibatkan risiko tinggi. Ini bukan cara mudah untuk dapat wang. Practice dengan paper trading sebelum guna wang sebenar.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <script src="ai-pattern-detection.js"></script>
+    <script>
+    // Initialize TradingView after page load
+    window.addEventListener('load', function() {
+        new TradingView.widget({
+            "autosize": true,
+            "symbol": "OANDA:XAUUSD",
+            "interval": "5",
+            "timezone": "Asia/Kuala_Lumpur",
+            "theme": "dark",
+            "style": "1",
+            "locale": "en",
+            "toolbar_bg": "#0a0e27",
+            "enable_publishing": false,
+            "hide_side_toolbar": false,
+            "allow_symbol_change": false,
+            "container_id": "tradingview_chart",
+            "studies": [
+                "RSI@tv-basicstudies",
+                "MASimple@tv-basicstudies",
+                "MACD@tv-basicstudies"
+            ],
+            "backgroundColor": "#1a1f3a",
+            "gridColor": "#2d3561",
+            "hide_top_toolbar": false,
+            "hide_legend": false,
+            "save_image": false
+        });
+    });
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
