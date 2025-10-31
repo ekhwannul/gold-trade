@@ -1,4 +1,0 @@
-MetaTrader5>=5.0.5387
-flask>=3.1.0
-flask-cors>=6.0.0
-pandas>=2.0.0
